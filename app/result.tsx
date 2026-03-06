@@ -1,10 +1,25 @@
-import { View, Text, Pressable } from 'react-native';
-import { router } from 'expo-router';
+import { View, Text, Pressable, Image } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
 
 export default function ResultScreen() {
+  const { imageUri } = useLocalSearchParams<{ imageUri: string }>();
+
   return (
     <View className="flex-1 items-center justify-center gap-6 px-8">
-      <Text className="text-2xl font-bold text-gray-800">結果画面</Text>
+      {imageUri ? (
+        <>
+          <Text className="text-2xl font-bold text-gray-800">できたよ！</Text>
+          <Image
+            source={{ uri: imageUri }}
+            className="aspect-square w-full rounded-2xl"
+            resizeMode="cover"
+          />
+        </>
+      ) : (
+        <Text className="text-2xl font-bold text-gray-800">
+          しゃしんがないよ
+        </Text>
+      )}
 
       <Pressable
         onPress={() => router.back()}
