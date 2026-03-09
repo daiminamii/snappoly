@@ -20,11 +20,15 @@
       "typedRoutes": true
     },
     "android": {
+      "package": "com.dminamii.snappoly",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "plugins": [
       "expo-router",
@@ -34,6 +38,13 @@
           "photosPermission": "アルバムからしゃしんをえらんでカクカクアートにするよ！"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "01023be1-7fa8-4f6b-a3b2-bd3c580c3201"
+      }
+    },
+    "owner": "d_minamii"
   }
 }
