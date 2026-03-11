@@ -32,10 +32,18 @@
     },
     "plugins": [
       "expo-router",
+      "./plugins/withSingleTask",
       [
         "expo-image-picker",
         {
           "photosPermission": "アルバムからしゃしんをえらんでカクカクアートにするよ！"
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "カクカクアートをほぞんするよ！",
+          "savePhotosPermission": "カクカクアートをほぞんするよ！"
         }
       ]
     ],
