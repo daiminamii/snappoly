@@ -6,24 +6,21 @@ import { buildMeshData } from './colorSampler';
 
 export interface PipelineResult {
   mesh: MeshData | null;
+  resizedUri: string;
   error?: string;
 }
 
-/**
- * 画像 → ローポリメッシュ生成パイプライン
- *
- * 顔検出はオプション強化。顔がなくても背景グリッドでメッシュ生成する。
- * 犬、風景、集合写真すべて対応。
- */
+// 画像 → リサイズ → 顔検出 → 三角形分割 → 色サンプリング
+// 顔がなくても背景グリッドのみでメッシュ生成
 export async function runMeshPipeline(
   imageUri: string,
   onStatus: (status: ProcessingStatus) => void,
 ): Promise<PipelineResult> {
-  // 1. リサイズ
+  // リサイズ
   onStatus('resizing');
   const resized = await resizeImage(imageUri);
 
-  // 2. 顔検出（失敗しても続行 — 背景グリッドだけでメッシュ生成）
+  // 顔検出（失敗時はスキャッター点のみで続行）
   onStatus('detecting');
   let facePoints: Point[] = [];
   let faceRects: Rect[] = [];
@@ -32,10 +29,10 @@ export async function runMeshPipeline(
     facePoints = faceData.points;
     faceRects = faceData.rects;
   } catch {
-    // 顔検出失敗 — スキャッター点のみで続行
+    // 検出失敗時はスキャッター点のみ
   }
 
-  // 3. 三角形分割
+  // 三角形分割
   onStatus('triangulating');
   const triangulation = triangulate(
     facePoints,
@@ -44,7 +41,7 @@ export async function runMeshPipeline(
     resized.height,
   );
 
-  // 4. 色サンプリング + メッシュ構築
+  // 色サンプリング + メッシュ構築
   onStatus('coloring');
   const mesh = await buildMeshData(
     triangulation,
@@ -54,9 +51,9 @@ export async function runMeshPipeline(
   );
 
   if (!mesh) {
-    return { mesh: null, error: 'color_sample_failed' };
+    return { mesh: null, resizedUri: resized.uri, error: 'color_sample_failed' };
   }
 
   onStatus('done');
-  return { mesh };
+  return { mesh, resizedUri: resized.uri };
 }

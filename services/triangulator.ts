@@ -1,5 +1,5 @@
-import Delaunator from 'delaunator';
-import type { Point, Rect } from '../types/Mesh';
+import Delaunator from "delaunator";
+import type { Point, Rect } from "../types/Mesh";
 
 /** 共線性フィルタの sin(θ) 閾値 */
 const COLLINEARITY_SIN_THRESHOLD = 0.02;
@@ -11,7 +11,7 @@ const DEDUP_DISTANCE = 1.0;
 const BOUNDARY_DIVISIONS = 8;
 
 /** 背景スキャッター点のセルサイズ（px） — 大きいほど荒い三角 */
-const SCATTER_CELL_SIZE = 140;
+const SCATTER_CELL_SIZE = 40;
 
 /** 顔領域の密なグリッドのセルサイズ（px） */
 const FACE_CELL_SIZE = 35;
@@ -31,8 +31,10 @@ function removeCollinearPoints(points: Point[]): Point[] {
     const curr = points[i];
     const next = points[(i + 1) % n];
 
-    const ax = curr.x - prev.x, ay = curr.y - prev.y;
-    const bx = next.x - curr.x, by = next.y - curr.y;
+    const ax = curr.x - prev.x,
+      ay = curr.y - prev.y;
+    const bx = next.x - curr.x,
+      by = next.y - curr.y;
     const lenA = Math.sqrt(ax * ax + ay * ay);
     const lenB = Math.sqrt(bx * bx + by * by);
 
@@ -67,10 +69,7 @@ function deduplicatePoints(points: Point[]): Point[] {
 /**
  * 画像境界に沿って均等に点を配置する
  */
-function generateBoundaryPoints(
-  width: number,
-  height: number,
-): Point[] {
+function generateBoundaryPoints(width: number, height: number): Point[] {
   const points: Point[] = [];
   const div = BOUNDARY_DIVISIONS;
 
@@ -83,10 +82,10 @@ function generateBoundaryPoints(
   // 辺に沿った分割点
   for (let i = 1; i < div; i++) {
     const t = i / div;
-    points.push({ x: width * t, y: 0 });          // 上辺
-    points.push({ x: width * t, y: height });      // 下辺
-    points.push({ x: 0, y: height * t });          // 左辺
-    points.push({ x: width, y: height * t });      // 右辺
+    points.push({ x: width * t, y: 0 }); // 上辺
+    points.push({ x: width * t, y: height }); // 下辺
+    points.push({ x: 0, y: height * t }); // 左辺
+    points.push({ x: width, y: height * t }); // 右辺
   }
 
   return points;
@@ -175,7 +174,12 @@ export function triangulate(
   const faceDense = generateFaceDensePoints(faceRects);
   const scatter = generateScatterPoints(imageWidth, imageHeight);
   const boundary = generateBoundaryPoints(imageWidth, imageHeight);
-  const combined = deduplicatePoints([...filtered, ...faceDense, ...scatter, ...boundary]);
+  const combined = deduplicatePoints([
+    ...filtered,
+    ...faceDense,
+    ...scatter,
+    ...boundary,
+  ]);
 
   // Delaunator の入力: flat Float64Array [x0, y0, x1, y1, ...]
   const coords = new Float64Array(combined.length * 2);

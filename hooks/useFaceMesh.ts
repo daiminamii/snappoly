@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { MeshData, ProcessingStatus } from '../types/Mesh';
 import { runMeshPipeline } from '../services/meshPipeline';
 
@@ -6,6 +6,10 @@ interface UseFaceMeshResult {
   mesh: MeshData | null;
   status: ProcessingStatus;
   error: string | null;
+  /** リサイズ済み画像の URI（before/after 表示用） */
+  resizedUri: string | null;
+  /** パイプライン再実行 */
+  retry: () => void;
 }
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -13,11 +17,18 @@ const ERROR_MESSAGES: Record<string, string> = {
   unknown: 'うまくいかなかったよ。\nもういっかいやってみよう！',
 };
 
+// 画像 URI からメッシュ生成パイプラインを実行
 export function useFaceMesh(imageUri: string | undefined): UseFaceMeshResult {
   const [mesh, setMesh] = useState<MeshData | null>(null);
   const [status, setStatus] = useState<ProcessingStatus>('idle');
   const [error, setError] = useState<string | null>(null);
+  const [resizedUri, setResizedUri] = useState<string | null>(null);
+  const [runCount, setRunCount] = useState(0);
   const cancelledRef = useRef(false);
+
+  const retry = useCallback(() => {
+    setRunCount((c) => c + 1);
+  }, []);
 
   useEffect(() => {
     if (!imageUri) return;
@@ -25,6 +36,7 @@ export function useFaceMesh(imageUri: string | undefined): UseFaceMeshResult {
     cancelledRef.current = false;
     setMesh(null);
     setError(null);
+    setResizedUri(null);
     setStatus('idle');
 
     const run = async () => {
@@ -34,6 +46,8 @@ export function useFaceMesh(imageUri: string | undefined): UseFaceMeshResult {
         });
 
         if (cancelledRef.current) return;
+
+        setResizedUri(result.resizedUri);
 
         if (result.mesh) {
           setMesh(result.mesh);
@@ -57,7 +71,7 @@ export function useFaceMesh(imageUri: string | undefined): UseFaceMeshResult {
     return () => {
       cancelledRef.current = true;
     };
-  }, [imageUri]);
+  }, [imageUri, runCount]);
 
-  return { mesh, status, error };
+  return { mesh, status, error, resizedUri, retry };
 }
